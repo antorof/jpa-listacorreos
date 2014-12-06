@@ -10,6 +10,11 @@ public class BDUsuario {
 	private static final String PERSISTENCE_UNIT_NAME = "antoniotoro.practica2";
 	private static EntityManagerFactory factoria = Persistence.createEntityManagerFactory(PERSISTENCE_UNIT_NAME);
 
+	/**
+	 * Inserta un usuario en la BD siempre que no exista ya un usuario con
+	 * ese mismo email.
+	 * @param usuario Usuario a insertar
+	 */
 	public static void insertar(Usuario usuario) {
 		if (!existeEmail(usuario.getEmail())) {
 			EntityManager em = factoria.createEntityManager();
@@ -22,6 +27,10 @@ public class BDUsuario {
 		}
 	}
 	
+	/**
+	 * Actualiza los datos de un usuario en la BD.
+	 * @param usuario Usuario con los cambios ya realizados
+	 */
 	public static void actualizar(Usuario usuario) {
 		if (existeEmail(usuario.getEmail())) {
 			EntityManager em = factoria.createEntityManager();
@@ -36,14 +45,16 @@ public class BDUsuario {
 			
 			antiguo.setNombre(usuario.getNombre());
 			antiguo.setApellido(usuario.getApellido());
-
-//			em.persist(antiguo);
 			
 			em.getTransaction().commit();
 			em.close();
 		}
 	}
 	
+	/**
+	 * Elimina un usuario de la BD.
+	 * @param usuario Usuario a eliminar
+	 */
 	public static void eliminar(Usuario usuario) {
 		if (existeEmail(usuario.getEmail())) {
 			EntityManager em = factoria.createEntityManager();
@@ -63,6 +74,11 @@ public class BDUsuario {
 		}
 	}
 	
+	/**
+	 * Recupera un usuario de la BD.
+	 * @param email Email del usuario que se quiere recuperar
+	 * @return El Usuario si se ha encontrado, <tt>null</tt> en caso contrario.
+	 */
 	public static Usuario seleccionarUsuario(String email) {
 		if (existeEmail(email)) {
 			EntityManager em = factoria.createEntityManager();
@@ -79,6 +95,11 @@ public class BDUsuario {
 		return null;
 	}
 	
+	/**
+	 * Comprueba que exista un usuario con un email.
+	 * @param email Email que queremos comprobar
+	 * @return <tt>true</tt> si existe, <tt>false</tt> si no
+	 */
 	public static boolean existeEmail(String email) {
 		EntityManager em = factoria.createEntityManager();
 		Query q = em.createQuery(
