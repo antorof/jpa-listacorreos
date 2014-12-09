@@ -1,5 +1,7 @@
 package antoniotoro.practica2.listacorreos;
 
+import java.util.List;
+
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.NoResultException;
@@ -114,6 +116,22 @@ public class BDUsuario {
 		} finally {
 			em.close();
 		}
+	}
+	
+	/**
+	 * Lista los usuarios de la BD.
+	 * @return Lista que contiene los usuarios
+	 */
+	public static List<Usuario> listarUsuarios() {
+		EntityManager em = factoria.createEntityManager();
+		Query q = em.createQuery("SELECT u from Usuario u");
+		
+		@SuppressWarnings("unchecked")
+		List<Usuario> lista = q.getResultList();
+
+		em.close();
+		
+		return lista;
 	}
 	
 }
