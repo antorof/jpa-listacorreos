@@ -1,9 +1,9 @@
 package antoniotoro.practica2.cliente;
 
 import java.awt.BorderLayout;
-import java.awt.Component;
-import java.awt.Dialog;
+import java.awt.Dialog.ModalExclusionType;
 import java.awt.EventQueue;
+import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -12,7 +12,6 @@ import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -25,9 +24,7 @@ import java.util.Map;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
-import javax.swing.DefaultCellEditor;
-import javax.swing.JCheckBox;
-import javax.swing.JDialog;
+import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -35,21 +32,14 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.JToolBar;
 import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.table.TableCellEditor;
-import javax.swing.table.TableCellRenderer;
 
-import antoniotoro.practica2.listacorreos.BDUsuario;
 import antoniotoro.practica2.listacorreos.Usuario;
-
-import javax.swing.JToolBar;
-import javax.swing.JButton;
-
-import java.awt.Dialog.ModalExclusionType;
-import java.awt.FlowLayout;
 
 public class Cliente extends JFrame implements ActionListener{
 	private static final long serialVersionUID = 1L;
@@ -57,9 +47,6 @@ public class Cliente extends JFrame implements ActionListener{
 	private JPanel panelContenido;
 	private JTable table;
 	private JScrollPane scroll;
-	
-//	private Object[][] datosTabla;
-//	private Object[]   columnasTabla;
 	
 	private JToolBar toolBar;
 	private JButton btnAddUser;
@@ -71,18 +58,18 @@ public class Cliente extends JFrame implements ActionListener{
 	private JTextField tfApellido;
 	private JLabel lblEmail;
 	private JTextField tfEmail;
-
-	public static String urlString = "http://localhost:8080/antoniotoro.practica2/ListaCorreosServlet";
 	private JPanel botonera;
 	private JButton btnAniadir;
 	private JButton btnCancelar;
 
-	private List<Usuario> usuarios;
+	public static String urlString = "http://localhost:8080/antoniotoro.practica2/ListaCorreosServlet";
+
+	private List<Usuario> listaUsuarios;
 
 	private ModeloTablaUsuarios modeloTablaUsuarios;
 	
 	/**
-	 * Launch the application.
+	 * Se lanza la aplicacion.
 	 */
 	public static void main(String[] args) {
 		try { // Para que no se vea con el look normal de Swing sino con el del sistema
@@ -102,7 +89,7 @@ public class Cliente extends JFrame implements ActionListener{
 	}
 
 	/**
-	 * Create the frame.
+	 * Se crea la ventana.
 	 */
 	public Cliente() {
 		setTitle("Pr\u00E1ctica 2 - Antonio Toro");
@@ -117,50 +104,37 @@ public class Cliente extends JFrame implements ActionListener{
 		
 		obtenerDatos();
 
-		modeloTablaUsuarios = new ModeloTablaUsuarios(usuarios);
+		modeloTablaUsuarios = new ModeloTablaUsuarios(listaUsuarios);
 		table = new JTable(modeloTablaUsuarios) {
 			private static final long serialVersionUID = 1L;
 
-			@SuppressWarnings("deprecation")
 			@Override
 			public void editingStopped(ChangeEvent e) {
-//		        super.editingStopped(e);
 		        TableCellEditor editor = getCellEditor();
 		        if (editor != null) {
 		            Object value = editor.getCellEditorValue();
-		            Usuario usuario = modeloTablaUsuarios.getUsuarioAt(editingRow);
-		            switch (editingColumn) {
-			            case 0:
-			                usuario.setNombre((String) value);
-							break;
-			            case 1:
-			                usuario.setApellido((String) value);
-							break;
-						default:
-							break;
-					}
+		            Usuario usuario = new Usuario(modeloTablaUsuarios.getUsuarioAt(editingRow));
 		            if (editingColumn < 2) {
-						String peticion = "action=actualizarUsuario";
-						URL url;
+			            switch (editingColumn) {
+				            case 0:
+				                usuario.setNombre((String) value);
+								break;
+				            case 1:
+				                usuario.setApellido((String) value);
+								break;
+							default:
+								break;
+						}
 						try {
-							url = new URL(Cliente.urlString);
-							HttpURLConnection conexion = (HttpURLConnection) url.openConnection();
-							conexion.setUseCaches(false);
-							conexion.setRequestMethod("POST");
-							conexion.setDoOutput(true);
-							
-							OutputStream output = conexion.getOutputStream();
 
-							String query = String.format("nombre=%s&apellido=%s&email=%s", 
-									URLEncoder.encode(usuario.getNombre()), 
-									URLEncoder.encode(usuario.getApellido()), 
-									URLEncoder.encode(usuario.getEmail()));
+							Map<String,String> parametros = new HashMap<String, String>();
+							parametros.put("action", "actualizarUsuario");
+							parametros.put("nombre", usuario.getNombre());
+							parametros.put("apellido", usuario.getApellido());
+							parametros.put("email", usuario.getEmail());
 							
-							output.write((peticion+"&"+query).getBytes());
-							output.flush();
-							output.close();
+							ObjectInputStream respuesta = new ObjectInputStream(realizarPeticionPost(urlString, parametros));
 							
-							ObjectInputStream respuesta = new ObjectInputStream(conexion.getInputStream());
 							int codigo = respuesta.readInt();
 							String mensaje = (String) respuesta.readObject();
 							System.out.println(codigo);
@@ -174,11 +148,7 @@ public class Cliente extends JFrame implements ActionListener{
 									break;
 							}
 							
-						} catch (MalformedURLException | ProtocolException e1) {
-							e1.printStackTrace();
-						} catch (IOException e1) {
-							e1.printStackTrace();
-						} catch (ClassNotFoundException e1) {
+						} catch (Exception e1) {
 							e1.printStackTrace();
 						}
 					}
@@ -186,10 +156,8 @@ public class Cliente extends JFrame implements ActionListener{
 		        }
 		    }
 		};
-//		table = new JTable();
 		Action borrarFila = new AbstractAction() {
 			private static final long serialVersionUID = 1L;
-			@SuppressWarnings("deprecation")
 			public void actionPerformed(ActionEvent e) {
 		        int modelRow = Integer.valueOf( e.getActionCommand() );
 		        Usuario usuario = modeloTablaUsuarios.getUsuarioAt(modelRow);
@@ -201,25 +169,13 @@ public class Cliente extends JFrame implements ActionListener{
 		        		JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
 
 		        if (resultadoDialogo == JOptionPane.YES_OPTION) {
-					String peticion = "action=eliminarUsuario";
-					URL url;
 					try {
-						url = new URL(Cliente.urlString);
-						HttpURLConnection conexion = (HttpURLConnection) url.openConnection();
-						conexion.setUseCaches(false);
-						conexion.setRequestMethod("POST");
-						conexion.setDoOutput(true);
+						Map<String,String> parametros = new HashMap<String, String>();
+						parametros.put("action", "eliminarUsuario");
+						parametros.put("email", usuario.getEmail());
 						
-						OutputStream output = conexion.getOutputStream();
-	
-						String query = String.format("email=%s", 
-								URLEncoder.encode(usuario.getEmail()));
+						ObjectInputStream respuesta = new ObjectInputStream(realizarPeticionPost(urlString, parametros));
 						
-						output.write((peticion+"&"+query).getBytes());
-						output.flush();
-						output.close();
-						
-						ObjectInputStream respuesta = new ObjectInputStream(conexion.getInputStream());
 						int codigo = respuesta.readInt();
 						String mensaje = (String) respuesta.readObject();
 						System.out.println(codigo);
@@ -233,11 +189,7 @@ public class Cliente extends JFrame implements ActionListener{
 								break;
 						}
 						
-					} catch (MalformedURLException | ProtocolException e1) {
-						e1.printStackTrace();
-					} catch (IOException e1) {
-						e1.printStackTrace();
-					} catch (ClassNotFoundException e1) {
+					} catch (Exception e1) {
 						e1.printStackTrace();
 					}
 			    }
@@ -350,42 +302,29 @@ public class Cliente extends JFrame implements ActionListener{
 	@SuppressWarnings("unchecked")
 	private void obtenerDatos() {
 		try {
-//			String peticion = "action=listarUsuarios";
-//			URL url = new URL(urlString);
-//			HttpURLConnection conexion = (HttpURLConnection) url.openConnection();
-//			conexion.setUseCaches(false);
-//			conexion.setRequestMethod("POST");
-//			conexion.setDoOutput(true);
-//			
-//			OutputStream output = conexion.getOutputStream();
-//			output.write(peticion.getBytes());
-//			output.flush();
-//			output.close();
-//			
-//			ObjectInputStream respuesta = new ObjectInputStream(conexion.getInputStream());
-			
 			Map<String,String> parametros = new HashMap<String, String>();
 			parametros.put("action", "listarUsuarios");
 			
 			ObjectInputStream respuesta = new ObjectInputStream(realizarPeticionPost(urlString, parametros));
 			
-			usuarios = (List<Usuario>) respuesta.readObject();
-		} catch (MalformedURLException | ProtocolException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (ClassNotFoundException e) {
+			listaUsuarios = (List<Usuario>) respuesta.readObject();
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 
+	/**
+	 * Realiza una petición POST a una URL con los parametros provistos.
+	 * @param urlString  Direccion a la que se desea realizar a peticion
+	 * @param parametros Parametros de la peticion
+	 * @return Respuesta obtenida o <tt>null</tt> en caso de fallo
+	 */
 	@SuppressWarnings("deprecation")
-	public InputStream realizarPeticionPost(String url_str, Map<String,String> parametros) {
+	public InputStream realizarPeticionPost(String urlString, Map<String,String> parametros) {
 		String cadenaParametros = "";
 		boolean primerPar = true;
 		
 		for (Map.Entry<String, String> entry : parametros.entrySet()) {
-//		    System.out.println(entry.getKey() + "/" + );
 			if (!primerPar) {
 				cadenaParametros += "&";
 			} else {
@@ -397,7 +336,7 @@ public class Cliente extends JFrame implements ActionListener{
 		    cadenaParametros += parDeParametro;
 		}
 		try {
-			URL url = new URL(url_str);
+			URL url = new URL(urlString);
 			HttpURLConnection conexion = (HttpURLConnection) url.openConnection();
 			conexion.setUseCaches(false);
 			conexion.setRequestMethod("POST");
@@ -418,34 +357,21 @@ public class Cliente extends JFrame implements ActionListener{
 		return null;
 	}
 	
-	@SuppressWarnings("deprecation")
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		if (e.getActionCommand().equals("ADDUSER")) {
 			panelAniadir.setVisible(true);
 		} 
 		else if (e.getActionCommand().equals("EXEC_ANIADIR")) {
-			String peticion = "action=aniadirUsuario";
-			URL url;
 			try {
-				url = new URL(Cliente.urlString);
-				HttpURLConnection conexion = (HttpURLConnection) url.openConnection();
-				conexion.setUseCaches(false);
-				conexion.setRequestMethod("POST");
-				conexion.setDoOutput(true);
+				Map<String,String> parametros = new HashMap<String, String>();
+				parametros.put("action", "aniadirUsuario");
+				parametros.put("nombre", tfNombre.getText());
+				parametros.put("apellido", tfApellido.getText());
+				parametros.put("email", tfEmail.getText());
 				
-				OutputStream output = conexion.getOutputStream();
-
-				String query = String.format("nombre=%s&apellido=%s&email=%s", 
-						URLEncoder.encode(tfNombre.getText()), 
-						URLEncoder.encode(tfApellido.getText()), 
-						URLEncoder.encode(tfEmail.getText()));
+				ObjectInputStream respuesta = new ObjectInputStream(realizarPeticionPost(urlString, parametros));
 				
-				output.write((peticion+"&"+query).getBytes());
-				output.flush();
-				output.close();
-				
-				ObjectInputStream respuesta = new ObjectInputStream(conexion.getInputStream());
 				int codigo = respuesta.readInt();
 				String mensaje = (String) respuesta.readObject();
 				System.out.println(codigo);
@@ -467,13 +393,9 @@ public class Cliente extends JFrame implements ActionListener{
 					break;
 				}
 				
-			} catch (MalformedURLException | ProtocolException e1) {
+			} catch (Exception e1) {
 				e1.printStackTrace();
-			} catch (IOException e1) {
-				e1.printStackTrace();
-			} catch (ClassNotFoundException e1) {
-				e1.printStackTrace();
-			}
+			} 
 		} 
 		else if (e.getActionCommand().equals("CANCELAR")) {
 			tfNombre.setText("");
