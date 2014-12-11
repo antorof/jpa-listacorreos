@@ -1,0 +1,160 @@
+package antoniotoro.practica2.listacorreos;
+
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.util.List;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+@WebServlet("/ListaCorreosServlet")
+public class ListaCorreosServlet extends HttpServlet {
+	private static final long serialVersionUID = 1L;
+
+	@Override
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		
+//			      Usuario usuario = new Usuario();
+//			      usuario.setNombre("Jose");
+//			      usuario.setApellido("Perez");
+//			      usuario.setEmail("josep@email.com");
+//			      BDUsuario.insertar(usuario);
+		try {
+			String accion = request.getParameter("action"); 
+			if (accion.equals("listarUsuarios")) {
+				List<Usuario> lista = BDUsuario.listarUsuarios();
+				ObjectOutputStream objOut = new ObjectOutputStream(response.getOutputStream());
+				objOut.writeObject(lista);
+				objOut.flush();
+				objOut.close();
+			}
+			else if (accion.equals("aniadirUsuario")) {
+				ObjectOutputStream output = new ObjectOutputStream(response.getOutputStream());
+				try {
+					String nombre   = request.getParameter("nombre"),
+					       apellido = request.getParameter("apellido"),
+					       email    = request.getParameter("email");
+					
+					if (BDUsuario.existeEmail(email)) {
+						output.writeInt(1);
+						output.writeObject("Usuario ya existente");
+					}
+					else {
+						Usuario usuario = new Usuario();
+						usuario.setNombre(nombre);
+						usuario.setApellido(apellido);
+						usuario.setEmail(email);
+						
+						BDUsuario.insertar(usuario);
+
+						output.writeInt(0);
+						output.writeObject("Usuario añadido correctamente");
+					}
+				} catch (Exception e) {
+					output.writeInt(-1);
+					output.writeObject("Error al añadir usuario");
+				} finally {
+					output.flush();
+					output.close();
+				}
+			}
+			else if (accion.equals("actualizarUsuario")) {
+				ObjectOutputStream output = new ObjectOutputStream(response.getOutputStream());
+				try {
+					String nombre   = request.getParameter("nombre"),
+					       apellido = request.getParameter("apellido"),
+					       email    = request.getParameter("email");
+					
+					if (BDUsuario.existeEmail(email)) {
+						Usuario usuario = new Usuario();
+						usuario.setNombre(nombre);
+						usuario.setApellido(apellido);
+						usuario.setEmail(email);
+						
+						BDUsuario.actualizar(usuario);
+						
+						output.writeInt(0);
+						output.writeObject("Usuario actualizado");
+					}
+					else {
+						output.writeInt(1);
+						output.writeObject("El usuario no existe");
+					}
+				} catch (Exception e) {
+					output.writeInt(-1);
+					output.writeObject("Error al actualizar usuario");
+				} finally {
+					output.flush();
+					output.close();
+				}
+			}
+			else if (accion.equals("eliminarUsuario")) {
+				ObjectOutputStream output = new ObjectOutputStream(response.getOutputStream());
+				try {
+					String email = request.getParameter("email");
+					
+					if (BDUsuario.existeEmail(email)) {
+						Usuario usuario = BDUsuario.seleccionarUsuario(email);
+						BDUsuario.eliminar(usuario);
+						
+						output.writeInt(0);
+						output.writeObject("Usuario eliminado");
+					}
+					else {
+						output.writeInt(1);
+						output.writeObject("El usuario no existe");
+					}
+				} catch (Exception e) {
+					output.writeInt(-1);
+					output.writeObject("Error al eliminar usuario");
+				} finally {
+					output.flush();
+					output.close();
+				}
+			}
+			else {
+				response.setContentType("text/html");
+				PrintWriter out = response.getWriter();
+				out.println("<h1>" + "Lista de usuarios" + "</h1>");
+				
+				out.println("<table>");
+				out.println("<tr><th>Nombre</th><th>Apellido</th><th>Email</th>");
+				for(Usuario u : BDUsuario.listarUsuarios()) {	
+					out.println("<tr><td>" + u.getNombre() + "</td>");
+					out.println("<td>" + u.getApellido() + "</td>");
+					out.println("<td>" + u.getEmail() + "</td></tr>");
+				}
+				out.println("</table>");
+			}
+		}
+		catch(Exception e){
+			response.setContentType("text/html");
+			PrintWriter out = response.getWriter();
+			out.println("<h1>" + "Lista de usuarios" + "</h1>");
+			
+			out.println("<table>");
+			out.println("<tr><th>Nombre</th><th>Apellido</th><th>Email</th>");
+			for(Usuario u : BDUsuario.listarUsuarios()) {	
+				out.println("<tr><td>" + u.getNombre() + "</td>");
+				out.println("<td>" + u.getApellido() + "</td>");
+				out.println("<td>" + u.getEmail() + "</td></tr>");
+			}
+			out.println("</table>");
+		}
+	}
+	
+	@Override
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+//		request.getParameter
+//		String url = "/index.html";
+//		request.setAttribute("user", user);
+//		request.setAttribute("message", message);
+//		getServletContext().getRequestDispatcher(url).forward(request, response);
+		doGet(request,response);
+	}
+}
