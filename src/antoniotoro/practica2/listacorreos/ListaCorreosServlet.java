@@ -2,7 +2,6 @@ package antoniotoro.practica2.listacorreos;
 
 import java.io.IOException;
 import java.io.ObjectOutputStream;
-import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.List;
 
@@ -18,12 +17,6 @@ public class ListaCorreosServlet extends HttpServlet {
 
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		
-//			      Usuario usuario = new Usuario();
-//			      usuario.setNombre("Jose");
-//			      usuario.setApellido("Perez");
-//			      usuario.setEmail("josep@email.com");
-//			      BDUsuario.insertar(usuario);
 		try {
 			String accion = request.getParameter("action"); 
 			if (accion.equals("listarUsuarios")) {
@@ -118,21 +111,15 @@ public class ListaCorreosServlet extends HttpServlet {
 				}
 			}
 			else {
-				response.setContentType("text/html");
-				PrintWriter out = response.getWriter();
-				out.println("<h1>" + "Lista de usuarios" + "</h1>");
+				ObjectOutputStream output = new ObjectOutputStream(response.getOutputStream());
 				
-				out.println("<table>");
-				out.println("<tr><th>Nombre</th><th>Apellido</th><th>Email</th>");
-				for(Usuario u : BDUsuario.listarUsuarios()) {	
-					out.println("<tr><td>" + u.getNombre() + "</td>");
-					out.println("<td>" + u.getApellido() + "</td>");
-					out.println("<td>" + u.getEmail() + "</td></tr>");
-				}
-				out.println("</table>");
+				output.writeInt(-2);
+				output.writeObject("Accion no permitida");
+				output.flush();
+				output.close();
 			}
 		}
-		catch(Exception e){
+		catch(Exception e) {
 			response.setContentType("text/html");
 			PrintWriter out = response.getWriter();
 			out.println("<h1>" + "Lista de usuarios" + "</h1>");
