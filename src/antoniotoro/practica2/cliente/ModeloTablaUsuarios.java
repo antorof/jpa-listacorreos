@@ -6,10 +6,15 @@ import javax.swing.table.AbstractTableModel;
 
 import antoniotoro.practica2.listacorreos.Usuario;
 
+/**
+ * Modelo de tabla personalizado para una tabla con los usuarios.
+ */
 public class ModeloTablaUsuarios extends AbstractTableModel {
 	private static final long serialVersionUID = 1L;
 	
+	/** Lista con los usuarios */
 	private List<Usuario> lista;
+	/** Nombres de las columnas */
     private String[] columnNames = { "Nombre", "Apellido", "Email", "Acci\u00F3n" };
 
     public ModeloTablaUsuarios(List<Usuario> usuarios){
@@ -26,6 +31,7 @@ public class ModeloTablaUsuarios extends AbstractTableModel {
         return 4;
     }
     
+    @Override
     public boolean isCellEditable(int rowIndex, int columnIndex) {
     	if (columnIndex == 2) {
 			return false;
@@ -33,27 +39,40 @@ public class ModeloTablaUsuarios extends AbstractTableModel {
     	return true;
     }
 
+    /**
+     * Aniade un usuario a la tabla.
+     * @param usuario Usuario que se quiere aniadir
+     */
     public void add(Usuario usuario) {
-//        int size = getSize();
         lista.add(usuario);
-//        fireTableRowsInserted(size, size);
         fireTableDataChanged();
     }
 
+    /**
+     * Elimina un usuario de la tabla.
+     * @param usuario Usuario a eliminar
+     */
     public void remove(Usuario usuario) {
         if (lista.contains(usuario)) {
-//            int index = staff.indexOf(staff);
             lista.remove(usuario);
-//            fireTableRowsRemove(index, index);
             fireTableDataChanged();
         }
     }
     
+    /**
+     * Elimina una fila de la tabla.
+     * @param rowIndez Fila que se quiere eliminar
+     */
     public void removeRow(int rowIndex) {
     	lista.remove(rowIndex);
         fireTableDataChanged();
     }
 
+    /**
+     * Devuelve el usuario correspondiente a una fila.
+     * @param rowIndex Fila correspondiente al usuario que se quiere
+     * @return
+     */
     public Usuario getUsuarioAt(int rowIndex) {
     	return lista.get(rowIndex);
     }

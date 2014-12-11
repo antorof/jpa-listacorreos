@@ -64,8 +64,6 @@ public class Cliente extends JFrame implements ActionListener{
 
 	public static String urlString = "http://localhost:8080/antoniotoro.practica2/ListaCorreosServlet";
 
-	private List<Usuario> listaUsuarios;
-
 	private ModeloTablaUsuarios modeloTablaUsuarios;
 	
 	/**
@@ -101,10 +99,10 @@ public class Cliente extends JFrame implements ActionListener{
 		panelContenido.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(panelContenido);
 		panelContenido.setLayout(new BorderLayout(0, 0));
-		
-		obtenerDatos();
 
+		List<Usuario> listaUsuarios = obtenerListaUsuarios();
 		modeloTablaUsuarios = new ModeloTablaUsuarios(listaUsuarios);
+		
 		table = new JTable(modeloTablaUsuarios) {
 			private static final long serialVersionUID = 1L;
 
@@ -126,7 +124,6 @@ public class Cliente extends JFrame implements ActionListener{
 								break;
 						}
 						try {
-
 							Map<String,String> parametros = new HashMap<String, String>();
 							parametros.put("action", "actualizarUsuario");
 							parametros.put("nombre", usuario.getNombre());
@@ -156,6 +153,10 @@ public class Cliente extends JFrame implements ActionListener{
 		        }
 		    }
 		};
+		/*
+		 * Accion empleada en los botones de la tabla que permite que ese usuario/fila
+		 * sea eliminado.
+		 */
 		Action borrarFila = new AbstractAction() {
 			private static final long serialVersionUID = 1L;
 			public void actionPerformed(ActionEvent e) {
@@ -195,7 +196,7 @@ public class Cliente extends JFrame implements ActionListener{
 			    }
 		    }
 		};
-		 
+		// Hacemos que la cuarta columna sea el boton cuya accion la de borrarFila
 		new ButtonColumn(table, borrarFila, 3);
 		table.putClientProperty("terminateEditOnFocusLost", true);
 		scroll = new JScrollPane(table);
@@ -294,22 +295,73 @@ public class Cliente extends JFrame implements ActionListener{
 		btnCancelar.addActionListener(this);
 		botonera.add(btnCancelar);
 	}
-	
+
 	/**
-	 * Obtiene la lista de usuarios del servlet y la almacena en la variable
-	 * de clase <tt>usuarios</tt>.
+	 * Obtiene la lista de usuarios del servlet.
+	 * @return Lista con los usuarios
 	 */
 	@SuppressWarnings("unchecked")
-	private void obtenerDatos() {
+	private List<Usuario> obtenerListaUsuarios() {
 		try {
 			Map<String,String> parametros = new HashMap<String, String>();
 			parametros.put("action", "listarUsuarios");
 			
 			ObjectInputStream respuesta = new ObjectInputStream(realizarPeticionPost(urlString, parametros));
 			
-			listaUsuarios = (List<Usuario>) respuesta.readObject();
+			List<Usuario> listaUsuarios = (List<Usuario>) respuesta.readObject();
+			
+			return listaUsuarios;
 		} catch (Exception e) {
 			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	@Override
+	public void actionPerformed(ActionEvent e) {
+		if (e.getActionCommand().equals("ADDUSER")) {
+			panelAniadir.setVisible(true);
+		} 
+		else if (e.getActionCommand().equals("EXEC_ANIADIR")) {
+			try {
+				Map<String,String> parametros = new HashMap<String, String>();
+				parametros.put("action", "aniadirUsuario");
+				parametros.put("nombre", tfNombre.getText());
+				parametros.put("apellido", tfApellido.getText());
+				parametros.put("email", tfEmail.getText());
+				
+				ObjectInputStream respuesta = new ObjectInputStream(realizarPeticionPost(urlString, parametros));
+				
+				int codigo = respuesta.readInt();
+				String mensaje = (String) respuesta.readObject();
+				System.out.println(codigo);
+				System.out.println(mensaje);
+				
+				switch (codigo) {
+					case 0:
+						Usuario usuario = new Usuario();
+						usuario.setNombre(tfNombre.getText());
+						usuario.setApellido(tfApellido.getText());
+						usuario.setEmail(tfEmail.getText());
+						modeloTablaUsuarios.add(usuario);
+						tfNombre.setText("");
+						tfApellido.setText("");
+						tfEmail.setText("");
+						break;
+	
+					default:
+						break;
+				}
+				
+			} catch (Exception e1) {
+				e1.printStackTrace();
+			} 
+		} 
+		else if (e.getActionCommand().equals("CANCELAR")) {
+			tfNombre.setText("");
+			tfApellido.setText("");
+			tfEmail.setText("");
+			panelAniadir.setVisible(false);
 		}
 	}
 
@@ -355,53 +407,5 @@ public class Cliente extends JFrame implements ActionListener{
 			e1.printStackTrace();
 		}
 		return null;
-	}
-	
-	@Override
-	public void actionPerformed(ActionEvent e) {
-		if (e.getActionCommand().equals("ADDUSER")) {
-			panelAniadir.setVisible(true);
-		} 
-		else if (e.getActionCommand().equals("EXEC_ANIADIR")) {
-			try {
-				Map<String,String> parametros = new HashMap<String, String>();
-				parametros.put("action", "aniadirUsuario");
-				parametros.put("nombre", tfNombre.getText());
-				parametros.put("apellido", tfApellido.getText());
-				parametros.put("email", tfEmail.getText());
-				
-				ObjectInputStream respuesta = new ObjectInputStream(realizarPeticionPost(urlString, parametros));
-				
-				int codigo = respuesta.readInt();
-				String mensaje = (String) respuesta.readObject();
-				System.out.println(codigo);
-				System.out.println(mensaje);
-				
-				switch (codigo) {
-				case 0:
-					Usuario usuario = new Usuario();
-					usuario.setNombre(tfNombre.getText());
-					usuario.setApellido(tfApellido.getText());
-					usuario.setEmail(tfEmail.getText());
-					modeloTablaUsuarios.add(usuario);
-					tfNombre.setText("");
-					tfApellido.setText("");
-					tfEmail.setText("");
-					break;
-
-				default:
-					break;
-				}
-				
-			} catch (Exception e1) {
-				e1.printStackTrace();
-			} 
-		} 
-		else if (e.getActionCommand().equals("CANCELAR")) {
-			tfNombre.setText("");
-			tfApellido.setText("");
-			tfEmail.setText("");
-			panelAniadir.setVisible(false);
-		}
 	}
 }
