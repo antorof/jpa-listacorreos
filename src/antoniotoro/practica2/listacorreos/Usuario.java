@@ -18,6 +18,14 @@ public class Usuario implements Serializable{
 	private String apellido;
 	private String email;
 	
+	public Usuario() {}
+	
+	public Usuario(Usuario otro) {
+		this.setNombre(otro.getNombre());
+		this.setApellido(otro.getApellido());
+		this.setEmail(otro.getEmail());
+	}
+	
 	public long getId() {
 		return id;
 	}
@@ -48,7 +56,7 @@ public class Usuario implements Serializable{
 	
 	@Override
 	public String toString() {
-		return nombre + " " + apellido;
+		return nombre + " " + apellido + " - " + email;
 	}
 	
 } 
