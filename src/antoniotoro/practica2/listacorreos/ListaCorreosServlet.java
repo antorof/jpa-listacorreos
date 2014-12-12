@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -14,6 +16,9 @@ import javax.servlet.http.HttpServletResponse;
 @WebServlet("/ListaCorreosServlet")
 public class ListaCorreosServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
+	
+	private static final String EXPR_REG_EMAIL = "^[_A-Za-z0-9-\\+]+(\\.[_A-Za-z0-9-]+)*@"
+			+ "[A-Za-z0-9-]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$";
 
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -27,15 +32,23 @@ public class ListaCorreosServlet extends HttpServlet {
 				objOut.close();
 			}
 			else if (accion.equals("aniadirUsuario")) {
+				final Pattern pattern = Pattern.compile(EXPR_REG_EMAIL);
+				
 				ObjectOutputStream output = new ObjectOutputStream(response.getOutputStream());
 				try {
 					String nombre   = request.getParameter("nombre"),
 					       apellido = request.getParameter("apellido"),
 					       email    = request.getParameter("email");
+
+					Matcher matcher = pattern.matcher(email);
 					
 					if (BDUsuario.existeEmail(email)) {
 						output.writeInt(1);
 						output.writeObject("Usuario ya existente");
+					}
+					else if (!matcher.matches()){
+						output.writeInt(2);
+						output.writeObject("Correo electronico no valido");
 					}
 					else {
 						Usuario usuario = new Usuario();
