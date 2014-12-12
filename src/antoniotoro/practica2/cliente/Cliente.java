@@ -51,7 +51,7 @@ public class Cliente extends JFrame implements ActionListener{
 	private JScrollPane scroll;
 	
 	private JToolBar toolBar;
-	private JButton btnAddUser;
+	private JButton btnToolbarAniadirUsuario;
 
 	private JPanel panelAniadir;
 	private JLabel lblNombre;
@@ -220,10 +220,10 @@ public class Cliente extends JFrame implements ActionListener{
 		toolBar.setFloatable(false);
 		panelContenido.add(toolBar, BorderLayout.NORTH);
 		
-		btnAddUser = new JButton("A\u00F1adir Usuario");
-		btnAddUser.setActionCommand("ADDUSER");
-		btnAddUser.addActionListener(this);
-		toolBar.add(btnAddUser);
+		btnToolbarAniadirUsuario = new JButton("A\u00F1adir Usuario");
+		btnToolbarAniadirUsuario.setActionCommand("ADDUSER");
+		btnToolbarAniadirUsuario.addActionListener(this);
+		toolBar.add(btnToolbarAniadirUsuario);
 		
 		panelAniadir = new JPanel();
 		panelAniadir.setVisible(false);
@@ -288,6 +288,12 @@ public class Cliente extends JFrame implements ActionListener{
 		gbc_tfEmail.gridy = 2;
 		panelAniadir.add(tfEmail, gbc_tfEmail);
 		tfEmail.setColumns(10);
+		tfEmail.addActionListener(new ActionListener() {
+		    @Override
+		    public void actionPerformed(ActionEvent e) {
+		       btnAniadir.doClick();
+		    }
+		});
 		
 		botonera = new JPanel();
 		GridBagConstraints gbc_botonera = new GridBagConstraints();
