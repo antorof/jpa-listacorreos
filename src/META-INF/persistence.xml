@@ -19,6 +19,11 @@
 
 			<property name="javax.persistence.jdbc.password" value="test" />
 
+			<!-- Connection Pool -->
+			<property name="eclipselink.connection-pool.default.initial" value="1" />
+			<property name="eclipselink.connection-pool.node2.min" value="16"/>
+			<property name="eclipselink.connection-pool.node2.max" value="16"/>
+			<property name="eclipselink.connection-pool.node2.url" value="jdbc:derby:C:\Users\Austregisilo\Downloads\db-derby-10.11.1.1-bin\basesDatos\antoniotoro.practica2;create=true"/>
 
 			<!-- EclipseLink debe crear este esquema de base de datos automaticamente -->
 			<property name="eclipselink.ddl-generation" value="create-tables" />
