@@ -22,6 +22,11 @@ public class ListaCorreosServlet extends HttpServlet {
 
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		doPost(request,response);
+	}
+	
+	@Override
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		try {
 			String accion = request.getParameter("action"); 
 			if (accion.equals("listarUsuarios")) {
@@ -146,15 +151,5 @@ public class ListaCorreosServlet extends HttpServlet {
 			}
 			out.println("</table>");
 		}
-	}
-	
-	@Override
-	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-//		request.getParameter
-//		String url = "/index.html";
-//		request.setAttribute("user", user);
-//		request.setAttribute("message", message);
-//		getServletContext().getRequestDispatcher(url).forward(request, response);
-		doGet(request,response);
 	}
 }
