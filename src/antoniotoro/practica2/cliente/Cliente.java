@@ -341,6 +341,7 @@ public class Cliente extends JFrame implements ActionListener{
 	public void actionPerformed(ActionEvent e) {
 		if (e.getActionCommand().equals("ADDUSER")) {
 			panelAniadir.setVisible(true);
+			tfNombre.requestFocusInWindow();
 		} 
 		else if (e.getActionCommand().equals("EXEC_ANIADIR")) {
 			Matcher matcher = pattern.matcher(tfEmail.getText());
@@ -351,11 +352,11 @@ public class Cliente extends JFrame implements ActionListener{
 			boolean error = false;
 			if (nombre.equals("")) {
 				error = true;
-				fraseError += "\n · Debe introducir un nombre";
+				fraseError += "\n · Debe introducir un nombre.";
 			}
 			if (apellido.equals("")) {
 				error = true;
-				fraseError += "\n · Debe introducir un apellido";
+				fraseError += "\n · Debe introducir un apellido.";
 			}
 			if (!matcher.matches()) {
 				error = true;
