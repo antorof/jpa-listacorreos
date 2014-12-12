@@ -21,6 +21,8 @@ import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -62,6 +64,10 @@ public class Cliente extends JFrame implements ActionListener{
 	private JButton btnAniadir;
 	private JButton btnCancelar;
 
+	private static final String EXPR_REG_EMAIL = "^[_A-Za-z0-9-\\+]+(\\.[_A-Za-z0-9-]+)*@"
+			+ "[A-Za-z0-9-]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$";
+	final Pattern pattern = Pattern.compile(EXPR_REG_EMAIL);
+	
 	public static String urlString = "http://localhost:8080/antoniotoro.practica2/ListaCorreosServlet";
 
 	private ModeloTablaUsuarios modeloTablaUsuarios;
@@ -323,39 +329,66 @@ public class Cliente extends JFrame implements ActionListener{
 			panelAniadir.setVisible(true);
 		} 
 		else if (e.getActionCommand().equals("EXEC_ANIADIR")) {
-			try {
-				Map<String,String> parametros = new HashMap<String, String>();
-				parametros.put("action", "aniadirUsuario");
-				parametros.put("nombre", tfNombre.getText());
-				parametros.put("apellido", tfApellido.getText());
-				parametros.put("email", tfEmail.getText());
-				
-				ObjectInputStream respuesta = new ObjectInputStream(realizarPeticionPost(urlString, parametros));
-				
-				int codigo = respuesta.readInt();
-				String mensaje = (String) respuesta.readObject();
-				System.out.println(codigo);
-				System.out.println(mensaje);
-				
-				switch (codigo) {
-					case 0:
-						Usuario usuario = new Usuario();
-						usuario.setNombre(tfNombre.getText());
-						usuario.setApellido(tfApellido.getText());
-						usuario.setEmail(tfEmail.getText());
-						modeloTablaUsuarios.add(usuario);
-						tfNombre.setText("");
-						tfApellido.setText("");
-						tfEmail.setText("");
-						break;
-	
-					default:
-						break;
+			Matcher matcher = pattern.matcher(tfEmail.getText());
+			String nombre   = tfNombre.getText(),
+				   apellido = tfApellido.getText(),
+				   email    = tfEmail.getText();
+			String fraseError = "";
+			boolean error = false;
+			if (nombre.equals("")) {
+				error = true;
+				fraseError += "\n · Debe introducir un nombre";
+			}
+			if (apellido.equals("")) {
+				error = true;
+				fraseError += "\n · Debe introducir un apellido";
+			}
+			if (!matcher.matches()) {
+				error = true;
+				fraseError += "\n · Correo electr\u00F3nico no v\u00E1lido.";
+			}
+			
+			if (!error) {
+				try {
+					Map<String,String> parametros = new HashMap<String, String>();
+					parametros.put("action", "aniadirUsuario");
+					parametros.put("nombre", nombre);
+					parametros.put("apellido", apellido);
+					parametros.put("email", email);
+					
+					ObjectInputStream respuesta = new ObjectInputStream(realizarPeticionPost(urlString, parametros));
+					
+					int codigo = respuesta.readInt();
+					String mensaje = (String) respuesta.readObject();
+					System.out.println(codigo);
+					System.out.println(mensaje);
+					
+					switch (codigo) {
+						case 0:
+							Usuario usuario = new Usuario();
+							usuario.setNombre(tfNombre.getText());
+							usuario.setApellido(tfApellido.getText());
+							usuario.setEmail(tfEmail.getText());
+							modeloTablaUsuarios.add(usuario);
+							tfNombre.setText("");
+							tfApellido.setText("");
+							tfEmail.setText("");
+							break;
+		
+						default:
+							break;
+					}
+					
+				} catch (Exception e1) {
+					e1.printStackTrace();
 				}
-				
-			} catch (Exception e1) {
-				e1.printStackTrace();
-			} 
+			}
+			else {
+				JOptionPane.showMessageDialog(Cliente.this,
+					    fraseError,
+					    "Error",
+					    JOptionPane.ERROR_MESSAGE);
+			}
 		} 
 		else if (e.getActionCommand().equals("CANCELAR")) {
 			tfNombre.setText("");
