@@ -140,14 +140,18 @@ public class Cliente extends JFrame implements ActionListener{
 							
 							int codigo = respuesta.readInt();
 							String mensaje = (String) respuesta.readObject();
-							System.out.println(codigo);
-							System.out.println(mensaje);
+//							System.out.println(codigo);
+//							System.out.println(mensaje);
 							
 							switch (codigo) {
 								case 0:
 						            setValueAt(value, editingRow, editingColumn);
 									break;
 								default:
+									JOptionPane.showMessageDialog(Cliente.this,
+										    mensaje,
+										    "Error",
+										    JOptionPane.ERROR_MESSAGE);
 									break;
 							}
 							
@@ -185,14 +189,18 @@ public class Cliente extends JFrame implements ActionListener{
 						
 						int codigo = respuesta.readInt();
 						String mensaje = (String) respuesta.readObject();
-						System.out.println(codigo);
-						System.out.println(mensaje);
+//						System.out.println(codigo);
+//						System.out.println(mensaje);
 						
 						switch (codigo) {
 							case 0:
 						        modeloTablaUsuarios.removeRow(modelRow);
 								break;
 							default:
+								JOptionPane.showMessageDialog(Cliente.this,
+									    mensaje,
+									    "Error",
+									    JOptionPane.ERROR_MESSAGE);
 								break;
 						}
 						
@@ -360,8 +368,8 @@ public class Cliente extends JFrame implements ActionListener{
 					
 					int codigo = respuesta.readInt();
 					String mensaje = (String) respuesta.readObject();
-					System.out.println(codigo);
-					System.out.println(mensaje);
+//					System.out.println(codigo);
+//					System.out.println(mensaje);
 					
 					switch (codigo) {
 						case 0:
@@ -376,6 +384,10 @@ public class Cliente extends JFrame implements ActionListener{
 							break;
 		
 						default:
+							JOptionPane.showMessageDialog(Cliente.this,
+								    mensaje,
+								    "Error",
+								    JOptionPane.ERROR_MESSAGE);
 							break;
 					}
 					
